@@ -20,6 +20,12 @@ jobs:
           go-version: '1.22'
           cache: true
 
+      - name: Update dependencies
+        run: |
+          rm -f go.sum
+          go get -u github.com/tdewolff/canvas@latest
+          go mod tidy
+
       - name: Download dependencies
         run: go mod download
 
@@ -46,6 +52,12 @@ jobs:
           go-version: '1.22'
           cache: true
 
+      - name: Update dependencies
+        run: |
+          rm -f go.sum
+          go get -u github.com/tdewolff/canvas@latest
+          go mod tidy
+
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v4
         with:
@@ -69,6 +81,12 @@ jobs:
         with:
           go-version: '1.22'
           cache: true
+
+      - name: Update dependencies
+        run: |
+          rm -f go.sum
+          go get -u github.com/tdewolff/canvas@latest
+          go mod tidy
 
       - name: Build
         env:
