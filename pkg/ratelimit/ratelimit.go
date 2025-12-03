@@ -35,7 +35,13 @@ type TokenBucket struct {
 // globalBurst: global burst capacity
 // ipRate: requests per second per IP (0 = unlimited)
 // ipBurst: burst capacity per IP
+// Returns nil if both rates are 0 (completely unlimited).
 func NewLimiter(globalRate, globalBurst, ipRate, ipBurst int) *Limiter {
+	// If both rates are 0, no limiting needed
+	if globalRate == 0 && ipRate == 0 {
+		return nil
+	}
+
 	l := &Limiter{
 		ipRate:      ipRate,
 		ipBurst:     ipBurst,

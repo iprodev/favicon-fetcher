@@ -1,6 +1,6 @@
 module faviconsvc
 
-go 1.25.1
+go 1.22
 
 require (
 	github.com/gen2brain/avif v0.4.4
