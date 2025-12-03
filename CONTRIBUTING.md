@@ -29,12 +29,12 @@ This project adheres to a code of conduct. By participating, you are expected to
 1. **Fork the repository** on GitHub
 2. **Clone your fork** locally:
    ```bash
-   git clone https://github.com/YOUR_USERNAME/favicon_fetcher.git
-   cd favicon_fetcher
+   git clone https://github.com/iprodev/Favicon-Fetcher.git
+   cd favicon-fetcher
    ```
 3. **Add upstream remote**:
    ```bash
-   git remote add upstream https://github.com/ORIGINAL_OWNER/favicon_fetcher.git
+   git remote add upstream https://github.com/iprodev/Favicon-Fetcher.git
    ```
 
 ## Development Setup

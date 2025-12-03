@@ -248,8 +248,8 @@ spec:
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/favicon_fetcher.git
-cd favicon_fetcher
+git clone https://github.com/iprodev/Favicon-Fetcher.git
+cd favicon-fetcher
 
 # Build
 go build -o /usr/local/bin/favicon-server ./cmd/server
