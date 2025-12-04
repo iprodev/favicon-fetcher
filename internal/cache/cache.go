@@ -69,15 +69,23 @@ func (m *Manager) FallbackCacheDir() string {
 
 // ReadOrigFromCache attempts to read an original image from cache.
 // Returns the image data and true if found and not expired, nil and false otherwise.
+// Note: There's a small race window where janitor might delete the file between
+// stat and read, but this is handled gracefully by returning cache miss.
 func (m *Manager) ReadOrigFromCache(iconURL string) ([]byte, bool) {
 	p := filepath.Join(m.OrigCacheDir(), hash("orig|"+iconURL))
-	if st, err := os.Stat(p); err == nil {
-		if time.Since(st.ModTime()) <= m.TTL {
-			b, err := os.ReadFile(p)
-			return b, err == nil
-		}
+	info, err := os.Stat(p)
+	if err != nil {
+		return nil, false
 	}
-	return nil, false
+	if time.Since(info.ModTime()) > m.TTL {
+		return nil, false
+	}
+	b, err := os.ReadFile(p)
+	if err != nil {
+		// File was deleted between stat and read (race with janitor)
+		return nil, false
+	}
+	return b, true
 }
 
 // WriteOrigToCache writes an original image to cache.
@@ -135,15 +143,19 @@ func (m *Manager) WriteResizedToCache(iconURL string, size int, format string, b
 // Returns the image data, true if found and not expired, and the modification time.
 func (m *Manager) ReadResizedFromCacheWithMod(iconURL string, size int, format string) ([]byte, bool, time.Time) {
 	p := m.ResizedCachePath(iconURL, size, format)
-	if st, err := os.Stat(p); err == nil {
-		if time.Since(st.ModTime()) <= m.TTL {
-			b, err := os.ReadFile(p)
-			if err == nil {
-				return b, true, st.ModTime()
-			}
-		}
+	info, err := os.Stat(p)
+	if err != nil {
+		return nil, false, time.Time{}
 	}
-	return nil, false, time.Time{}
+	if time.Since(info.ModTime()) > m.TTL {
+		return nil, false, time.Time{}
+	}
+	b, err := os.ReadFile(p)
+	if err != nil {
+		// File was deleted between stat and read (race with janitor)
+		return nil, false, time.Time{}
+	}
+	return b, true, info.ModTime()
 }
 
 func atomicWriteFile(p string, data []byte) error {
