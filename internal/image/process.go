@@ -31,6 +31,7 @@ func getResvgContext() *resvg.Context {
 }
 
 // RasterizeSVG converts SVG to raster image using resvg (full SVG support including gradients)
+// Preserves transparency
 func RasterizeSVG(svgBytes []byte, width, height int) (image.Image, error) {
 	svgBytes = preprocessSVG(svgBytes)
 
@@ -58,7 +59,8 @@ func RasterizeSVG(svgBytes []byte, width, height int) (image.Image, error) {
 		return nil, fmt.Errorf("decode: %w", err)
 	}
 
-	return compositeOnWhite(img), nil
+	// Convert to RGBA but preserve transparency
+	return toRGBA(img), nil
 }
 
 func preprocessSVG(data []byte) []byte {
@@ -70,6 +72,18 @@ func preprocessSVG(data []byte) []byte {
 	return []byte(s)
 }
 
+// toRGBA converts any image to RGBA preserving transparency
+func toRGBA(img image.Image) *image.RGBA {
+	if rgba, ok := img.(*image.RGBA); ok {
+		return rgba
+	}
+	bounds := img.Bounds()
+	result := image.NewRGBA(bounds)
+	draw.Draw(result, bounds, img, bounds.Min, draw.Src)
+	return result
+}
+
+// compositeOnWhite composites an image onto a white background (removes transparency)
 func compositeOnWhite(img image.Image) *image.RGBA {
 	bounds := img.Bounds()
 	result := image.NewRGBA(bounds)
@@ -147,7 +161,7 @@ func ResizeImage(img image.Image, size int) image.Image {
 		return img
 	}
 	dst := image.NewRGBA(image.Rect(0, 0, size, size))
-	fillWithWhite(dst)
+	// Transparent background
 	draw.CatmullRom.Scale(dst, dst.Bounds(), img, bounds, draw.Over, nil)
 	return dst
 }
@@ -161,7 +175,6 @@ func ResizeImageWithBackground(img image.Image, size int, bgColor color.Color) i
 
 func CreateFallbackImage(size int) (image.Image, error) {
 	svg := fmt.Sprintf(`<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" viewBox="0 0 100 100">
-  <rect width="100" height="100" fill="white"/>
   <circle cx="50" cy="50" r="45" fill="#e3f2fd" stroke="#1976d2" stroke-width="2"/>
   <ellipse cx="50" cy="50" rx="45" ry="20" fill="none" stroke="#1976d2" stroke-width="1"/>
   <ellipse cx="50" cy="50" rx="20" ry="45" fill="none" stroke="#1976d2" stroke-width="1"/>
@@ -171,7 +184,7 @@ func CreateFallbackImage(size int) (image.Image, error) {
 
 func CreateBlankImage() image.Image {
 	img := image.NewRGBA(image.Rect(0, 0, 1, 1))
-	img.SetRGBA(0, 0, color.RGBA{255, 255, 255, 255})
+	// Transparent
 	return img
 }
 
